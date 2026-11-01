@@ -1,0 +1,1051 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\hypersetup{
+  pdftitle={A short combinatorial proof of Seymour's second-neighbourhood conjecture},
+  pdfauthor={Qihuan Xie},
+  pdfsubject={Combinatorics}}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\abs}[1]{\lvert #1\rvert}
+\DeclareMathOperator{\rank}{rank}
+\newcommand{\T}{\mathsf{T}}
+
+\title{A short combinatorial proof of Seymour's second-neighbourhood conjecture}
+\author{Qihuan Xie\\
+University of British Columbia\\
+\texttt{qhxie@student.ubc.ca}}
+\date{October 31, 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We give a short, self-contained and purely combinatorial proof of Seymour's
+conjecture on second neighbourhoods. Every nonempty finite oriented graph
+has a vertex with at least as many vertices at directed distance exactly
+two as at directed distance one. The main ingredient is a new deletion lemma for
+two families of ordered pairs. We prove it by induction, using Hall's
+defect theorem to reduce the instance and, when both Hall matchings exist,
+a combination of greedy matchings and double counting. The lemma applies to
+arbitrary instances on four finite sets and bounds the deletion cost by the
+smaller of two matching numbers, plus the number of points left uncovered.
+We also derive a weighted form of the conjecture and a consequence for
+directed triangles.
+
+\medskip
+\noindent\textbf{MSC2020:} 05C20, 05C70, 05D15, 68V15.
+\end{abstract}
+
+\section{Statement and plan}
+
+An \emph{oriented graph} is a finite directed graph without loops and
+without a pair of opposite arcs. For a vertex $v$ let
+$N_1^+(v)=\{u:v\to u\}$ and let $N_2^+(v)$ be the set of vertices at
+directed distance exactly two from $v$. For a set $S$ of vertices write
+\[
+  F(S)=\{y:\ x\to y\text{ for some }x\in S\},\qquad F^2=F\circ F .
+\]
+We allow $F(S)$ to meet $S$. Since an oriented graph has no directed closed
+walk of length two, $N_2^+(v)=F^2(\{v\})\setminus F(\{v\})$.
+
+\begin{theorem}[Seymour's second-neighbourhood conjecture]\label{thm:main}
+Every nonempty oriented graph has a vertex $v$ with
+$\abs{N_1^+(v)}\le\abs{N_2^+(v)}$.
+\end{theorem}
+
+The conjecture was recorded by Dean and Latka~\cite{DL}, together with its
+special case for tournaments; that case was proved by Fisher~\cite{Fisher}
+and, by a different method, by Havet and Thomass\'e~\cite{HT}. Fidler and
+Yuster~\cite{FY} proved the conjecture for several further classes of
+dense orientations, among them tournaments missing a matching, and
+Ghazal~\cite{Ghazal} proved a weighted version for tournaments missing a
+generalized star. Kaneko and Locke~\cite{KL} settled oriented graphs of
+minimum outdegree at most six. For arbitrary oriented graphs, Chen, Shen
+and Yuster~\cite{CSY} found a vertex $v$ with
+$\abs{N_2^+(v)}\ge\gamma\abs{N_1^+(v)}$ for a constant $\gamma\approx0.657$,
+and Huang and Peng~\cite{HP} raised the constant to about $0.7155$.
+Espuny D\'iaz, Gir\~ao, Granet and Kronenberg~\cite{EGGK} showed that for
+every fixed $p<1/2$, asymptotically almost surely every orientation of the
+random graph $G(n,p)$ satisfies the conjecture. A proof of the full
+conjecture was released by OpenAI in 2026~\cite{OAI}. Call a vertex
+\emph{good} if it satisfies the inequality of Theorem~\ref{thm:main} and
+\emph{bad} otherwise. The proof has three steps.
+\begin{enumerate}[label=(\arabic*)]
+\item A minimal counterexample $D$ satisfies a strict subset deficit
+  (Lemma~\ref{lem:deficit}).
+\item A lexicographic blow-up of $D$ is an oriented graph $G$ with positive
+  indegrees in which $\abs U+\abs{F^2U}<2\abs{FU}$ for every nonempty
+  proper vertex set $U$ (Lemma~\ref{lem:blowup}).
+\item No such $G$ exists. This is the following set version of the
+  conjecture, which holds for every oriented graph with positive indegrees,
+  not only for blow-ups.
+\end{enumerate}
+
+\begin{theorem}[set version]\label{thm:set}
+Every nonempty oriented graph in which every vertex has an in-neighbour has
+a nonempty proper vertex set $U$ with $\abs U+\abs{F^2(U)}\ge2\abs{F(U)}$.
+\end{theorem}
+
+We prove Theorem~\ref{thm:set} in Section~\ref{sec:extremal} by an extremal
+argument based on a deletion lemma (Theorem~\ref{thm:deletion}). The
+reduction uses the minimal-counterexample and graph-product methods of
+Brantner, Brockman, Kay and Snively~\cite{BBKS} and Seacrest's subset
+perspective~\cite{Seacrest2019}; we follow the presentation of these ideas
+in~\cite{OAI}.
+
+Our main new contribution is the purely combinatorial proof of the deletion
+lemma in Section~\ref{sec:deletion}. The first proof obtains the deletion
+bound through an auxiliary bipartite graph on copies of the $Z$-points,
+using K\H{o}nig's theorem, an augmenting-path exchange, Edmonds'
+generic-rank correspondence and a kernel lemma. Here we prove the lemma
+directly: Hall's defect theorem handles the inductive cases, while greedy
+matchings and a double-counting argument handle the saturated case. The
+theorem applies to arbitrary instances on four finite sets and gives a
+sharper bound in terms of the smaller of two matching numbers; the weaker
+bound $|H|+q$ suffices for Theorem~\ref{thm:set}.
+Section~\ref{sec:consequences} records two consequences, and
+Section~\ref{sec:lean} describes the formal verification in Lean.
+
+\subsection*{Outline}
+In a counterexample with as few vertices and then as few arcs as possible,
+every nonempty proper set $S$ satisfies
+\[
+  \abs{F^2S\setminus FS}<\abs{FS\setminus S}
+\]
+(Lemma~\ref{lem:deficit}): deleting carefully chosen arcs produces a good
+vertex, and the neighbourhoods it loses force this deficit. Replacing each
+vertex by a transitive tournament on $m>n$ vertices magnifies the deficit
+by $m$, while each fibre contributes an error of at most one; this yields
+the strict concavity $\abs U+\abs{F^2U}<2\abs{FU}$
+(Lemma~\ref{lem:blowup}).
+
+To rule out concavity (Section~\ref{sec:extremal}), we consider pairs
+$(P,Q)$ of sets of ordered pairs of vertices that are \emph{compatible}:
+the images under $F$ of the columns of $P$ and of the rows of $Q$ are
+disjoint. Among them we maximize $\abs P+\abs Q+d$, where $d$ counts the
+points outside both images. Summing concavity over the columns of $P$ and
+the rows of $Q$ produces new families $R,C$ whose combined size exceeds
+$\abs P+\abs Q$ by more than $2d$. These families need not be compatible,
+but the deletion lemma (Theorem~\ref{thm:deletion}) restores compatibility
+at a cost of at most $d+q$, where $q$ counts the points that the repaired
+families leave uncovered. These $q$ points are credited back to the
+objective, which therefore increases.
+
+The deletion lemma is proved by induction (Section~\ref{sec:deletion}). Two
+conflicting members determine an $H$-point, and the conflicts with a fixed
+$H$-point form a complete bipartite block, so we pay one unit per
+$H$-point. If the $H$-points cannot be matched into one of the families,
+Hall's theorem gives a deficient set of $H$-points with few neighbours
+there; deleting these few members removes all those $H$-points, and
+induction applies. If both matchings exist, we delete everything. The
+counting lemma (Lemma~\ref{lem:count}) bounds the cost: each family can be
+matched into the $Z$-points it covers (Lemma~\ref{lem:local}), and the two
+matchings have total size at most $\abs Z+\abs H$ (Lemma~\ref{lem:rank}).
+This matching inequality is the combinatorial shadow of a factorization
+through $H$ (Remark~\ref{rem:linalg}). We prove it with greedy matchings
+along one linear order shared by all blocks; sharing the order is what
+allows the blockwise choices to assemble into a global matching.
+
+\section{The reduction}
+
+\begin{lemma}\label{lem:deficit}
+Let $D$ be a counterexample to Theorem~\ref{thm:main} with the minimum
+number of vertices and, among those, the minimum number of arcs. Then
+$F(S)\not\subseteq S$ for every nonempty proper $S\subsetneq V(D)$; in
+particular every vertex of $D$ has an in-neighbour. Moreover
+\begin{equation}\label{eq:deficit}
+  \abs{F^2(S)\setminus F(S)}<\abs{F(S)\setminus S}
+  \qquad\text{for every nonempty proper }S\subsetneq V(D).
+\end{equation}
+\end{lemma}
+
+The arc-deletion argument below adapts the proof of
+\cite[Lemma~4]{Seacrest2019}.
+
+\begin{proof}
+The vertex of a one-vertex oriented graph is good, so $\abs{V(D)}\ge2$.
+Let $S$ be nonempty and proper with $F(S)\subseteq S$. For $v\in S$ every
+walk of length at most two starting at $v$ stays in $S$, so $N_1^+(v)$ and
+$N_2^+(v)$ are the same in the induced graph $D[S]$ as in $D$; hence
+$D[S]$ is a counterexample with fewer vertices, which is impossible. For
+each vertex $y$, applying this to $S=V(D)\setminus\{y\}$, which is nonempty
+because $\abs{V(D)}\ge2$, shows that some arc enters $y$.
+
+Fix a nonempty proper $S$ and put $I=F(S)\cap S$ and $E=F(S)\setminus S$;
+then $E\neq\varnothing$. For
+$T\subseteq E$ put $g(T)=\abs{F(T)\setminus(I\cup T)}$.
+
+\emph{Claim.} For every $T\subsetneq E$ there is a nonempty
+$Q\subseteq E\setminus T$ with $g(T\cup Q)-g(T)<\abs Q$.
+
+Let $D_T$ be obtained from $D$ by deleting all arcs from $S$ to
+$E\setminus T$. Every vertex of $E\setminus T$ has an in-neighbour in $S$,
+so at least one arc is deleted, and $D_T$ is an oriented graph on $V(D)$
+with fewer arcs. By minimality some vertex $v$ is good in $D_T$. If $v$
+lost no out-neighbour, then its first out-neighbourhood is unchanged and,
+since deleting arcs creates no walks, its second out-neighbourhood can only
+shrink; then $v$ would still be bad. Hence $v$ lost an out-neighbour, so $v\in S$, and
+$Q:=F(\{v\})\cap(E\setminus T)$ is nonempty: it is exactly the set of
+out-neighbours that $v$ lost. Since $F(\{v\})\subseteq F(S)=I\cup E$, the
+out-neighbours of $v$ in $D_T$ lie in $I\cup T$.
+
+Every two-step walk $v\to u\to w$ in $D_T$ has $u\in I\cup T$. If $u\in I$
+then $u\in S$ and $w\in F(S)\setminus(E\setminus T)=I\cup T$; if $u\in T$
+then $w\in F(T)$. Thus
+\begin{equation}\label{eq:walks}
+  F^2_{D_T}(\{v\})\subseteq I\cup T\cup F(T).
+\end{equation}
+Write $d_1=\abs{N_1^+(v)}$ and $d_2=\abs{N_2^+(v)}$ for the values in $D$,
+so $d_2<d_1$. A vertex $w$ that is a second out-neighbour of $v$ in $D_T$
+but not in $D$ lies in $F^2_D(\{v\})\setminus\{v\}$ and outside $N_2^+(v)$,
+hence in $N_1^+(v)$, and it is not an out-neighbour in $D_T$; so $w\in Q$,
+and by~\eqref{eq:walks} and $Q\cap(I\cup T)=\varnothing$ we get
+$w\in Q\cap F(T)$. Conversely let
+$\Lambda=F(Q)\setminus(I\cup T\cup Q\cup F(T))$. Each $w\in\Lambda$ is
+reached from $v$ by a two-step walk through $Q$; $w\neq v$, because an arc
+$q\to v$ would oppose the arc $v\to q$; and
+$w\notin N_1^+(v)\subseteq I\cup T\cup Q$. So $\Lambda\subseteq N_2^+(v)$,
+while by~\eqref{eq:walks} no vertex of $\Lambda$ is a second out-neighbour
+in $D_T$. Goodness of $v$ in $D_T$ therefore gives
+\[
+  d_1-\abs Q\ \le\ d_2-\abs{\Lambda}+\abs{Q\cap F(T)} .
+\]
+On the other hand, passing from $T$ to $T\cup Q$ removes from the set
+counted by $g$ exactly the points of $Q\cap F(T)$ and adds exactly
+$\Lambda$, so
+\[
+  g(T\cup Q)-g(T)=\abs{\Lambda}-\abs{Q\cap F(T)}\le\abs Q+d_2-d_1<\abs Q .
+\]
+This proves the claim.
+
+Starting from $T=\varnothing$ and applying the claim repeatedly (each time to
+the original graph $D$) we reach $T=E$ after finitely many steps; summing
+the strict inequalities and using $g(\varnothing)=0$ gives $g(E)<\abs E$.
+Finally $F(I)\subseteq F(S)=I\cup E$, so
+$F^2(S)\setminus F(S)=F(I\cup E)\setminus(I\cup E)=F(E)\setminus(I\cup E)$,
+whose size is $g(E)$. This is~\eqref{eq:deficit}.
+\end{proof}
+
+The construction in the next lemma is a lexicographic product of the form
+used in the proof of \cite[Theorem~4.3]{BBKS}; here we take the second
+factor to be a transitive tournament. The tournament blocks magnify the
+subset deficit, while their internal arcs contribute only a bounded error
+in each fibre.
+
+\begin{lemma}\label{lem:blowup}
+Let $D$ be an oriented graph on $n$ vertices, each with an in-neighbour,
+satisfying~\eqref{eq:deficit}. Let $m>n$ and let $G$ have vertex set
+$V(D)\times\{1,\dots,m\}$, with $(v,a)\to(w,b)$ if and only if $v\to w$ in
+$D$, or $v=w$ and $a<b$. Then $G$ is an oriented graph, every vertex of $G$
+has an in-neighbour, and
+\begin{equation}\label{eq:concave}
+  \abs U+\abs{F_G^2(U)}<2\abs{F_G(U)}
+  \qquad\text{for every nonempty proper }U\subsetneq V(G).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+$G$ has no loops, and an opposite pair of arcs would require either
+$a<b<a$ or opposite arcs in $D$. An in-neighbour $u$ of $w$ in $D$ gives
+the in-neighbour $(u,1)$ of every $(w,b)$.
+
+For $\Theta\subseteq\{1,\dots,m\}$ let
+$f(\Theta)=\{b:\ b>a\text{ for some }a\in\Theta\}$, so
+$f(\varnothing)=\varnothing$. If $\Theta\neq\varnothing$ and $a=\min\Theta$,
+then $\abs{f(\Theta)}=m-a$, $\abs{f^2(\Theta)}=\max(m-a-1,0)$ and
+$\abs\Theta\le m-a+1$, so
+\begin{equation}\label{eq:internal}
+  \abs\Theta+\abs{f^2(\Theta)}-2\abs{f(\Theta)}\le 1 .
+\end{equation}
+Fix $U$, let $\Theta_v=\{a:(v,a)\in U\}$ and
+$S=\{v:\Theta_v\neq\varnothing\}$, and write $F=F_D$. The first image of
+$U$ contains the full blocks over $F(S)$ and, in a block
+$v\in S\setminus F(S)$, exactly $\{v\}\times f(\Theta_v)$:
+\[
+  \abs{F_G(U)}=m\abs{F(S)}+\sum_{v\in S\setminus F(S)}\abs{f(\Theta_v)} .
+\]
+A two-step walk starting in $U$ that uses two arcs between blocks ends in a
+block over $F^2(S)$; one using exactly one such arc ends in a block over
+$F(S)$; one using none stays in its block $v\in S$ and ends in
+$\{v\}\times f^2(\Theta_v)$. Let $H_0=F(S)\cup F^2(S)$. The blocks over
+$H_0$ contain at most $m\abs{H_0}$ points of $F^2_G(U)$, and every other
+point of $F^2_G(U)$ lies in $\{v\}\times f^2(\Theta_v)$ for some
+$v\in S\setminus H_0\subseteq S\setminus F(S)$. Hence
+\[
+  \abs{F^2_G(U)}\le m\abs{H_0}+\sum_{v\in S\setminus F(S)}\abs{f^2(\Theta_v)} .
+\]
+Using $\abs{\Theta_v}\le m$ for $v\in S\cap F(S)$, \eqref{eq:internal} for
+$v\in S\setminus F(S)$, and $\abs{H_0}=\abs{F(S)}+\abs{F^2S\setminus FS}$,
+\begin{align*}
+  \abs U+\abs{F^2_GU}-2\abs{F_GU}
+  &\le m\bigl(\abs{S\cap F(S)}+\abs{H_0}-2\abs{F(S)}\bigr)+\abs{S\setminus F(S)}\\
+  &= m\bigl(\abs{F^2S\setminus FS}-\abs{FS\setminus S}\bigr)+\abs{S\setminus F(S)} .
+\end{align*}
+If $S\neq V(D)$, the bracket is a negative integer by~\eqref{eq:deficit},
+so the right side is at most $-m+n<0$. If $S=V(D)$, positive indegrees give
+$F(S)=V(D)$, hence $F_G(U)=V(G)$ and then $F^2_G(U)=V(G)$, and the left
+side equals $\abs U-\abs{V(G)}<0$.
+\end{proof}
+
+\section{The extremal argument}\label{sec:extremal}
+
+\begin{proof}[Proof of Theorem~\ref{thm:set}]
+Suppose $G$ is a nonempty oriented graph in which every vertex has an
+in-neighbour and~\eqref{eq:concave} holds for every nonempty proper vertex
+set; we derive a contradiction. Let $X=V(G)$ and write $F=F_G$. Positive
+indegrees give $F(X)=X$. For $\Omega\subseteq X\times X$ define
+\[
+  F_1\Omega=\{(i,j):\ (p,j)\in\Omega,\ p\to i\},\qquad
+  F_2\Omega=\{(i,j):\ (i,s)\in\Omega,\ s\to j\},
+\]
+so $F_1$ acts by $F$ on each column $\Omega_{\ast j}=\{p:(p,j)\in\Omega\}$
+and $F_2$ acts by $F$ on each row $\Omega_{i\ast}=\{s:(i,s)\in\Omega\}$.
+Call $(P,Q)$ \emph{compatible} if $F_1P\cap F_2Q=\varnothing$, and let
+$\Delta$ be the diagonal. The pair $(\Delta,\Delta)$ is compatible:
+$(i,j)\in F_1\Delta$ means $j\to i$ and $(i,j)\in F_2\Delta$ means
+$i\to j$. Among compatible pairs with $\Delta\subseteq P\cap Q$ choose one
+maximizing
+\[
+  \Phi(P,Q)=\abs P+\abs Q+d,\qquad d=\abs X^2-\abs{F_1P}-\abs{F_2Q};
+\]
+by compatibility $d$ counts the points outside $F_1P\cup F_2Q$.
+
+\emph{Columns and rows are proper.} Each column $P_{\ast j}$ contains $j$.
+If $P_{\ast j}=X$ then $X\times\{j\}=F(X)\times\{j\}\subseteq F_1P$; an
+in-neighbour $w$ of $j$ gives $(w,j)\in F_2\Delta\subseteq F_2Q$,
+contradicting compatibility. Each row $Q_{i\ast}$ contains $i$. If
+$Q_{i\ast}=X$ then $\{i\}\times X=\{i\}\times F(X)\subseteq F_2Q$; an
+in-neighbour $w$ of $i$ gives $(i,w)\in F_1\Delta\subseteq F_1P$, again
+contradicting compatibility. Since $\abs{F_1P}=\sum_j\abs{F(P_{\ast j})}$,
+$\abs{F_1^2P}=\sum_j\abs{F^2(P_{\ast j})}$ and $\abs P=\sum_j\abs{P_{\ast j}}$,
+and likewise for $Q$ by rows, summing~\eqref{eq:concave} over the columns of
+$P$ and the rows of $Q$ gives
+\[
+  \abs P+\abs{F_1^2P}<2\abs{F_1P},\qquad \abs Q+\abs{F_2^2Q}<2\abs{F_2Q}.
+\]
+Let $R=X^2\setminus F_2^2Q$ and $C=X^2\setminus F_1^2P$. Then
+\begin{equation}\label{eq:gain}
+  \abs R+\abs C=2\abs X^2-\abs{F_2^2Q}-\abs{F_1^2P}>\abs P+\abs Q+2d .
+\end{equation}
+We use the deletion lemma in the following special case. For
+$R,C\subseteq X\times X$, members $(p,j)\in R$ and $(i,s)\in C$
+\emph{conflict} if $p\to i$ and $s\to j$; a pair lying in both $R$ and $C$
+counts as one member of each. The conflict has \emph{$Z$-point} $(i,j)$ and
+\emph{$H$-point} $(p,s)$, and $Z$ and $H$ denote the sets of all $Z$- and
+$H$-points. The member $(p,j)\in R$ \emph{covers} $(i,j)$ if $p\to i$, and
+$(i,s)\in C$ covers $(i,j)$ if $s\to j$. Theorem~\ref{thm:deletion}, proved
+in Section~\ref{sec:deletion} for general instances (here
+$X_1=X_2=X_3=X_4=X$ and both relations are the arc relation of $G$), gives
+$R'\subseteq R$ and $C'\subseteq C$ with no conflict between a member of
+$R'$ and a member of $C'$, containing every member that is in no conflict,
+such that
+\[
+  \abs{R\setminus R'}+\abs{C\setminus C'}\le\abs H+q,
+\]
+where $q$ is the number of points of $Z$ covered by no member of $R'$ or
+$C'$. We apply it to the families $R$ and $C$ just defined.
+
+\emph{The diagonal survives and has no conflicts.} If $(v,v)\in F_2^2Q$,
+some $s\to v$ has $(v,s)\in F_2Q$; but $(s,s)\in P$ gives
+$(v,s)\in F_1P$. If $(v,v)\in F_1^2P$, some $p\to v$ has
+$(p,v)\in F_1P$; but $(p,p)\in Q$ gives $(p,v)\in F_2Q$. So
+$\Delta\subseteq R\cap C$. A conflict of $(v,v)\in R$ with $(i,s)\in C$
+means $s\to v\to i$, and then $(s,s)\in P$ gives $(i,s)\in F_1^2P$,
+impossible. A conflict of $(p,j)\in R$ with $(v,v)\in C$ means
+$p\to v\to j$, and $(p,p)\in Q$ gives $(p,j)\in F_2^2Q$, impossible.
+
+\emph{$H$-points are uncovered: $\abs H\le d$.} Take a conflict
+$(p,j)\in R$, $(i,s)\in C$. If $(p,s)\in F_1P$, some $(u,s)\in P$ has
+$u\to p$, and $u\to p\to i$ puts $(i,s)\in F_1^2P$. If $(p,s)\in F_2Q$,
+some $(p,t)\in Q$ has $t\to s$, and $t\to s\to j$ puts
+$(p,j)\in F_2^2Q$. Both are impossible, so $H$ avoids $F_1P\cup F_2Q$.
+
+\emph{Contradiction.} Theorem~\ref{thm:deletion} gives conflict-free
+$R'\subseteq R$, $C'\subseteq C$ containing $\Delta$ with
+$\abs{R\setminus R'}+\abs{C\setminus C'}\le\abs H+q\le d+q$. A point of
+$F_1R'\cap F_2C'$ would come from $(p,j)\in R'$ and $(i,s)\in C'$ with
+$p\to i$, $s\to j$, a conflict; so $(R',C')$ is compatible. Hence
+$d':=\abs X^2-\abs{F_1R'}-\abs{F_2C'}$ is the number of points outside
+$F_1R'\cup F_2C'$. A point of $Z$ lies in $F_1R'\cup F_2C'$ exactly when
+it is covered by a member of $R'$ or $C'$, so $q\le d'$. Using
+\eqref{eq:gain},
+\[
+  \Phi(R',C')=\abs{R'}+\abs{C'}+d'\ge\abs R+\abs C-d-q+d'
+  \ge\abs R+\abs C-d>\abs P+\abs Q+d=\Phi(P,Q),
+\]
+contradicting the choice of $(P,Q)$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+If the theorem failed, Lemma~\ref{lem:deficit} would give a counterexample
+$D$ on $n$ vertices, each with an in-neighbour, satisfying~\eqref{eq:deficit}.
+Lemma~\ref{lem:blowup} with $m=n+1$ would then give a nonempty oriented
+graph $G$ in which every vertex has an in-neighbour and~\eqref{eq:concave}
+holds for every nonempty proper vertex set, contradicting
+Theorem~\ref{thm:set}.
+\end{proof}
+
+\section{The deletion lemma}\label{sec:deletion}
+
+\subsection{Setting}
+
+The deletion lemma can be formulated without reference to the original
+oriented graph. An \emph{instance} consists of
+finite sets $X_1,X_2,X_3,X_4$, relations $\alpha\subseteq X_1\times X_2$
+and $\beta\subseteq X_3\times X_4$, and families $R\subseteq X_1\times X_4$
+and $C\subseteq X_2\times X_3$. Throughout, $p\in X_1$, $i\in X_2$,
+$s\in X_3$, $j\in X_4$, and we write $p\to i$ for $(p,i)\in\alpha$ and
+$s\to j$ for $(s,j)\in\beta$. We treat $R$ and $C$ as two separate
+families: their elements are \emph{members} (of $R$ or of $C$), and a pair
+that lies in both $R$ and $C$, which can happen when the sets $X_k$
+coincide, gives one member of each family. Members $(p,j)\in R$ and
+$(i,s)\in C$ \emph{conflict} if $p\to i$ and $s\to j$; the conflict has
+\emph{$Z$-point} $(i,j)$ and \emph{$H$-point} $(p,s)$. Let $Z$ and $H$ be
+the sets of $Z$-points and $H$-points of all conflicts. A member
+$(p,j)\in R$ \emph{covers} $(i,j)\in Z$ if $p\to i$, and a member
+$(i,s)\in C$ \emph{covers} $(i,j)\in Z$ if $s\to j$. Thus a conflict is a
+square whose sides are the two members and the two arcs, and whose
+diagonals are its $Z$-point and its $H$-point (Figure~\ref{fig:conflict}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  pt/.style={circle,fill,inner sep=1.3pt},
+  arc/.style={-{Stealth[length=2.2mm]},semithick},
+  memR/.style={line width=1.4pt,blue!60!black},
+  memC/.style={line width=1.4pt,red!65!black},
+  zdiag/.style={dashed,thick,green!45!black},
+  hdiag/.style={densely dotted,thick,violet},
+  set/.style={gray,font=\footnotesize},
+  lab/.style={font=\footnotesize}]
+  % (a) one conflict
+  \node[pt,label=above:$p$] (p) at (0,2.4) {};
+  \node[pt,label=above:$i$] (i) at (4,2.4) {};
+  \node[pt,label=below:$s$] (s) at (4,0) {};
+  \node[pt,label=below:$j$] (j) at (0,0) {};
+  \node[set] at (-0.45,2.75) {$X_1$};
+  \node[set] at (4.45,2.75) {$X_2$};
+  \node[set] at (4.45,-0.35) {$X_3$};
+  \node[set] at (-0.45,-0.35) {$X_4$};
+  \draw[hdiag] (p) -- node[lab,pos=0.28,above,sloped] {$(p,s)\in H$} (s);
+  \draw[zdiag] (j) -- node[lab,pos=0.28,above,sloped] {$(i,j)\in Z$} (i);
+  \draw[memR] (p) -- node[lab,left,black] {$r=(p,j)\in R$} (j);
+  \draw[memC] (i) -- node[lab,right,black] {$c=(i,s)\in C$} (s);
+  \draw[arc] (p) -- node[lab,above] {$p\to i$} (i);
+  \draw[arc] (s) -- node[lab,below] {$s\to j$} (j);
+  \node at (2,-1.0) {(a)};
+  % (b) a block R(h) x C(h), drawn with the half-turn symmetry
+  \begin{scope}[xshift=9.6cm]
+  \node[pt,label=above left:$p$] (bp) at (0.6,2.2) {};
+  \node[pt,label=above:$i_1$] (bi1) at (3.0,2.6) {};
+  \node[pt,label=right:$i_2$] (bi2) at (3.4,1.7) {};
+  \node[pt,label=below right:$s$] (bs) at (3.0,0) {};
+  \node[pt,label=below:$j_1$] (bj1) at (0.6,-0.4) {};
+  \node[pt,label=left:$j_2$] (bj2) at (0.2,0.5) {};
+  \draw[hdiag] (bp) -- node[lab,pos=0.5,above,sloped] {$h=(p,s)$} (bs);
+  \draw[memR] (bp) -- (bj1);
+  \draw[memR] (bp) -- (bj2);
+  \draw[memC] (bi1) -- (bs);
+  \draw[memC] (bi2) -- (bs);
+  \draw[arc] (bp) -- (bi1);
+  \draw[arc] (bp) -- (bi2);
+  \draw[arc] (bs) -- (bj1);
+  \draw[arc] (bs) -- (bj2);
+  \node at (1.8,-1.0) {(b)};
+  \end{scope}
+\end{tikzpicture}
+\caption{(a) A conflict between $r=(p,j)\in R$ and $c=(i,s)\in C$. The
+member $r$ covers the $Z$-point $(i,j)$ through the arc $p\to i$, and $c$
+covers it through the arc $s\to j$. The symmetry $\sigma$ is the half-turn
+of the square: it exchanges $R$ with $C$ and $\alpha$ with $\beta$, and
+transposes both diagonals. (b) A block (Remark~\ref{rem:blocks}): every
+member $(p,j_b)$ of $R(h)$ conflicts with every member $(i_a,s)$ of $C(h)$;
+all four conflicts have the $H$-point $h=(p,s)$, and their $Z$-points
+$(i_a,j_b)$ are distinct.}
+\label{fig:conflict}
+\end{figure}
+
+\begin{remark}\label{rem:facts}
+(a) If $r=(p,j)\in R$ and $c=(i,s)\in C$ both cover $z=(i,j)\in Z$, they
+conflict, since the two covering conditions are $p\to i$ and $s\to j$.
+(b) A member covering $z$ is in a conflict: a conflict with $Z$-point $z$
+supplies a member of the other family, and (a) applies.
+\end{remark}
+
+For $h=(p,s)\in H$ let
+\[
+  R(h)=\{(p,j)\in R:\ s\to j\},\qquad C(h)=\{(i,s)\in C:\ p\to i\}.
+\]
+
+\begin{remark}\label{rem:blocks}
+For $h\in H$ the conflicts with $H$-point $h$ are exactly the pairs in
+$R(h)\times C(h)$, and both sets are nonempty. This follows directly from
+the definitions of conflict, $R(h)$ and $C(h)$.
+\end{remark}
+
+The parts of every bipartite graph below are taken disjoint: when the sets
+involved intersect, as they do in Section~\ref{sec:extremal}, we use
+disjoint copies. Let $\Gamma_R$ be the bipartite graph with parts $H$ and
+$R$ in which $h$ is adjacent to the members of $R(h)$, and $\Gamma_C$ the
+bipartite graph with parts $H$ and $C$ in which $h$ is adjacent to the
+members of $C(h)$. Write
+$\nu$ for the maximum size of a matching. We use Hall's
+theorem~\cite{Hall} in its defect form.
+
+\begin{lemma}\label{lem:hall}
+Let $\nu_0$ be the maximum size of a matching in a bipartite graph with
+parts $V_1,V_2$, and suppose $\nu_0<\abs{V_1}$. Then some nonempty
+$V'\subseteq V_1$ has at most $\abs{V'}-\abs{V_1}+\nu_0$ neighbours.
+\end{lemma}
+
+\begin{proof}
+Put $\delta=\abs{V_1}-\nu_0\ge1$ and add $\delta-1$ new vertices to
+$V_2$, each adjacent to every vertex of $V_1$. A matching of the new graph
+has at most $\nu_0$ edges at old vertices of $V_2$ and at most
+$\delta-1$ edges at new ones, so it does not saturate $V_1$. By Hall's
+theorem some $V'\subseteq V_1$ has fewer than $\abs{V'}$ neighbours in the
+new graph; $V'\neq\varnothing$, so these neighbours include the $\delta-1$
+new vertices, and $V'$ has fewer than $\abs{V'}-\delta+1$ old neighbours.
+\end{proof}
+
+\emph{Symmetry.} For an instance
+$\mathcal I=(X_1,X_2,X_3,X_4,\alpha,\beta,R,C)$ let
+\[
+  \sigma(\mathcal I)=(X_3,X_4,X_1,X_2,\beta,\alpha,C^\T,R^\T),\qquad
+  C^\T=\{(s,i):(i,s)\in C\},\quad R^\T=\{(j,p):(p,j)\in R\}.
+\]
+In Figure~\ref{fig:conflict}(a), $\sigma$ is the half-turn of the square.
+Transposition identifies conflicts and coverings in $\sigma(\mathcal I)$
+with those in $\mathcal I$, with $R$ and $C$ exchanged and with $Z$ and $H$
+transposed. It also gives
+$\Gamma_R(\sigma(\mathcal I))\cong\Gamma_C(\mathcal I)$ and
+$\Gamma_C(\sigma(\mathcal I))\cong\Gamma_R(\mathcal I)$; in particular,
+$\Gamma_L(\sigma(\mathcal I))\cong\Gamma_N(\mathcal I)$ once $\Gamma_L$ and
+$\Gamma_N$ are defined below. Finally
+$\sigma(\sigma(\mathcal I))=\mathcal I$.
+
+\subsection{Matching numbers into \texorpdfstring{$X_4$}{X4}}
+
+For $C'\subseteq X_3$ and $X\subseteq X_4$ let $\lambda(C',X)$ be the
+maximum size of a matching in the bipartite graph with parts $C'$ and $X$
+in which $s$ is adjacent to $j$ when $s\to j$. For $A\subseteq X_3$ let
+$N_\beta(A)=\{j:\ s\to j\text{ for some }s\in A\}$.
+
+\begin{lemma}[K\H{o}nig]\label{lem:konig}
+$\lambda(C',X)=\min_{A\subseteq C'}\bigl(\abs{C'\setminus A}+\abs{N_\beta(A)\cap X}\bigr)$.
+\end{lemma}
+
+\begin{proof}
+For every $A\subseteq C'$ and every matching, the edges at vertices of $A$
+end in $N_\beta(A)\cap X$ and the other edges start in $C'\setminus A$; this gives
+$\le$. If $\lambda(C',X)=\abs{C'}$, the choice $A=\varnothing$ gives
+equality. Otherwise Lemma~\ref{lem:hall} gives a nonempty $A\subseteq C'$
+with $\abs{N_\beta(A)\cap X}\le\abs A-\abs{C'}+\lambda(C',X)$, that is,
+$\abs{C'\setminus A}+\abs{N_\beta(A)\cap X}\le\lambda(C',X)$.
+\end{proof}
+
+\begin{lemma}[bisubmodularity]\label{lem:bisub}
+For $S_1,S_2\subseteq X_3$ and $Q_1,Q_2\subseteq X_4$,
+\[
+  \lambda(S_1,Q_1)+\lambda(S_2,Q_2)\ \ge\
+  \lambda(S_1\cup S_2,\,Q_1\cap Q_2)+\lambda(S_1\cap S_2,\,Q_1\cup Q_2).
+\]
+\end{lemma}
+
+\begin{proof}
+Choose $A_1\subseteq S_1$ and $A_2\subseteq S_2$ attaining the minimum in
+Lemma~\ref{lem:konig} for $(S_1,Q_1)$ and $(S_2,Q_2)$. By
+Lemma~\ref{lem:konig} applied with $A_1\cup A_2\subseteq S_1\cup S_2$ and
+with $A_1\cap A_2\subseteq S_1\cap S_2$, it suffices to show
+\begin{align*}
+  &\abs{(S_1\cup S_2)\setminus(A_1\cup A_2)}+\abs{(S_1\cap S_2)\setminus(A_1\cap A_2)}
+   =\abs{S_1\setminus A_1}+\abs{S_2\setminus A_2},\\
+  &\abs{N_\beta(A_1\cup A_2)\cap Q_1\cap Q_2}+\abs{N_\beta(A_1\cap A_2)\cap(Q_1\cup Q_2)}
+   \le\abs{N_\beta(A_1)\cap Q_1}+\abs{N_\beta(A_2)\cap Q_2}.
+\end{align*}
+For the first line compare the contributions of each $s\in X_3$: if
+$s\in S_1\cap S_2$, use
+$[s\notin A_1\cup A_2]+[s\notin A_1\cap A_2]=[s\notin A_1]+[s\notin A_2]$;
+if $s$ lies in exactly one $S_k$, then $s$ lies in neither the other set
+$A_{3-k}$ nor $S_1\cap S_2$, and both sides count it $[s\notin A_k]$ times.
+For the second, put $a=[j\in N_\beta(A_1)]$ and $b=[j\in N_\beta(A_2)]$.
+Then $[j\in N_\beta(A_1\cup A_2)]=\max(a,b)$ and
+$[j\in N_\beta(A_1\cap A_2)]\le\min(a,b)$, so $j$ is counted on the left at
+most $\max(a,b)+\min(a,b)=a+b$ times if $j\in Q_1\cap Q_2$ and at most
+$\min(a,b)$ times if $j$ lies in exactly one of $Q_1,Q_2$; in each case this
+is at most its count $a[j\in Q_1]+b[j\in Q_2]$ on the right.
+\end{proof}
+
+\begin{corollary}\label{cor:incr}
+For $S\subseteq X_3$, $X\subseteq X_4$ and $j\in X_4\setminus X$ write
+$\partial_j(S,X)=\lambda(S,X\cup\{j\})-\lambda(S,X)$.
+\begin{enumerate}[label=(\alph*)]
+\item If $X\subseteq X'\subseteq X_4$ and $j\notin X'$, then
+  $\partial_j(S,X)\ge\partial_j(S,X')$.
+\item If $S\subseteq S'\subseteq X_3$ and $j\notin X$, then
+  $\partial_j(S',X)\ge\partial_j(S,X)$.
+\item $\partial_j(S,X)\in\{0,1\}$ whenever $j\notin X$.
+\item $\lambda(S,X)=\lambda(S,X\cap N_\beta(S))$ for all $S\subseteq X_3$ and
+  $X\subseteq X_4$.
+\end{enumerate}
+\end{corollary}
+
+\begin{proof}
+(a) Lemma~\ref{lem:bisub} with $S_1=S_2=S$, $Q_1=X\cup\{j\}$, $Q_2=X'$
+gives $\lambda(S,X\cup\{j\})+\lambda(S,X')\ge\lambda(S,X)+\lambda(S,X'\cup\{j\})$,
+since $(X\cup\{j\})\cap X'=X$ and $(X\cup\{j\})\cup X'=X'\cup\{j\}$.
+(b) Lemma~\ref{lem:bisub} with $(S_1,Q_1)=(S,X)$ and
+$(S_2,Q_2)=(S',X\cup\{j\})$ gives
+$\lambda(S,X)+\lambda(S',X\cup\{j\})\ge\lambda(S',X)+\lambda(S,X\cup\{j\})$.
+(c) Adding one vertex to a part changes the maximum matching size by $0$
+or $1$. (d) Vertices of $X\setminus N_\beta(S)$ are isolated.
+\end{proof}
+
+Fix once and for all a linear order $\prec$ on $X_4$, and for $Q\subseteq
+X_4$ and $j\in X_4$ write $Q_{\succ j}=\{x\in Q:\ j\prec x\}$. For
+$S\subseteq X_3$ and $Q\subseteq X_4$ define the \emph{greedy set}
+\[
+  g(S,Q)=\{j\in Q:\ \partial_j(S,Q_{\succ j})=1\}.
+\]
+
+Adding the points of $Q$ in decreasing order changes $\lambda$ by $0$ or $1$
+at each step; the greedy set consists precisely of the points giving an
+increment of $1$.
+
+\begin{lemma}\label{lem:greedy}
+$\abs{g(S,Q)}=\lambda(S,Q)$, and every $Q_0\subseteq g(S,Q)$ satisfies
+$\lambda(S,Q_0)=\abs{Q_0}$.
+\end{lemma}
+
+\begin{proof}
+The first assertion is the telescoping identity
+$\lambda(S,Q)=\sum_{j\in Q}\partial_j(S,Q_{\succ j})$ together with
+Corollary~\ref{cor:incr}(c). Let $G=g(S,Q)$. For $j\in G$ we have $G_{\succ j}\subseteq Q_{\succ j}$ and
+$j\notin Q_{\succ j}$, so Corollary~\ref{cor:incr}(a) gives
+$\partial_j(S,G_{\succ j})\ge\partial_j(S,Q_{\succ j})=1$. Summing these
+increments along $G$ gives $\lambda(S,G)\ge\abs G$; since trivially
+$\lambda(S,G)\le\abs G$, we get $\lambda(S,G)=\abs G$. Thus $G$, and hence
+every $Q_0\subseteq G$, can be matched into $S$.
+\end{proof}
+
+\subsection{The counting lemma}
+
+Let $\Gamma_L$ be the bipartite graph with parts $R$ and $Z$ in which a
+member $(p,j)$ is adjacent to the points of $Z$ that it covers, and
+$\Gamma_N$ the bipartite graph with parts $C$ and $Z$ in which a member
+$(i,s)$ is adjacent to the points of $Z$ that it covers. By the symmetry
+paragraph, $\Gamma_L(\sigma(\mathcal I))\cong\Gamma_N(\mathcal I)$.
+
+\begin{remark}\label{rem:linalg}
+Although the proof below is purely combinatorial, Lemma~\ref{lem:rank} has a
+useful linear-algebraic interpretation. Take one indeterminate $x_{pi}$ for
+each $p\to i$ and one indeterminate $y_{sj}$ for each $s\to j$, and let
+$L\in\mathbb K^{Z\times R}$, $N\in\mathbb K^{C\times Z}$,
+$B\in\mathbb K^{H\times R}$ and $A\in\mathbb K^{C\times H}$, over the field
+$\mathbb K$ of rational functions in these indeterminates, have the entries
+$L_{(i,j),(p,j)}=x_{pi}$, $N_{(i,s),(i,j)}=y_{sj}$,
+$B_{(p,s),(p,j)}=y_{sj}$ and $A_{(i,s),(p,s)}=x_{pi}$ when $p\to i$,
+respectively $s\to j$, and $0$ otherwise. Both $(NL)_{(i,s),(p,j)}$ and
+$(AB)_{(i,s),(p,j)}$ equal $x_{pi}y_{sj}$ if $p\to i$ and $s\to j$ (then
+$(p,j)$ and $(i,s)$ conflict, so $(i,j)\in Z$ and $(p,s)\in H$) and $0$
+otherwise; so $NL=AB$. The matrices $L$, $N$ and $B$ are block diagonal
+(over $j$, $i$ and $p$ respectively) with distinct indeterminates within
+each block, so by~\cite{Edmonds} their ranks are $\nu(\Gamma_L)$,
+$\nu(\Gamma_N)$ and $\nu(\Gamma_R)$. Sylvester's inequality and
+$\rank(AB)\le\rank B$ give
+$\rank L+\rank N-\abs Z\le\rank(NL)=\rank(AB)\le\rank B$, which is the
+first inequality of Lemma~\ref{lem:rank}. This interpretation is not used
+in the combinatorial proof below.
+\end{remark}
+
+\begin{lemma}\label{lem:rank}
+For every instance,
+$\nu(\Gamma_L)+\nu(\Gamma_N)\le\abs Z+\nu(\Gamma_R)\le\abs Z+\abs H$.
+\end{lemma}
+
+In the proof, the greedy sets $B_i$ of the blocks $C_i$ are all taken along
+the order $\prec$. Corollary~\ref{cor:incr} then shows that they remain
+greedy for the larger sets $C^{(p)}$ (Step~2), and this is where the common
+order is used.
+
+\begin{proof}
+For $i\in X_2$ let $C_i=\{s:(i,s)\in C\}$ and $Z^i=\{j:(i,j)\in Z\}$; for
+$p\in X_1$ let $R_p=\{j:(p,j)\in R\}$ and
+$C^{(p)}=\bigcup_{i:\,p\to i}C_i$. Two observations:
+\begin{enumerate}[label=(\Alph*)]
+\item If $p\to i$, then $R_p\cap N_\beta(C_i)\subseteq Z^i$: if $j\in R_p$ and
+  $s\in C_i$ with $s\to j$, then $(p,j)$ and $(i,s)$ conflict, with
+  $Z$-point $(i,j)$.
+\item $\Gamma_N$ is the disjoint union over $i$ of the graphs between the
+  members $(i,s)$, $s\in C_i$, and the points $(i,j)$, $j\in Z^i$, with
+  $(i,s)$ adjacent to $(i,j)$ when $s\to j$. Hence
+  $\nu(\Gamma_N)=\sum_i\lambda(C_i,Z^i)$.
+\end{enumerate}
+Let $B_i=g(C_i,Z^i)\subseteq Z^i$ and $Y=\{(i,j):\ j\in B_i\}\subseteq Z$.
+By Lemma~\ref{lem:greedy} and (B), $\abs Y=\nu(\Gamma_N)$. Let $W$ be the
+set of $(p,j)\in R$ for which $(i,j)\in Y$ for some $i$ with $p\to i$.
+
+\emph{Step 1: $\nu(\Gamma_L)\le\abs W+\abs Z-\abs Y$.} A member
+$(p,j)\in R\setminus W$ is adjacent in $\Gamma_L$ only to points $(i,j)$
+with $p\to i$, and these are not in $Y$. So in a matching of $\Gamma_L$ the
+edges at $R\setminus W$ end at distinct points of $Z\setminus Y$, and there
+are at most $\abs W$ other edges.
+
+\emph{Step 2: $W$ can be matched into $H$ in $\Gamma_R$.} Fix $p$ and let
+$W_p=\{j:(p,j)\in W\}\subseteq R_p$. Let $j\in W_p$, choose $i$ with
+$p\to i$ and $j\in B_i$, and put $X=(R_p)_{\succ j}$. Since $j\in B_i$,
+$\partial_j(C_i,Z^i_{\succ j})=1$. By (A), $X\cap N_\beta(C_i)\subseteq
+Z^i_{\succ j}$, so Corollary~\ref{cor:incr}(a) gives
+$\partial_j(C_i,X\cap N_\beta(C_i))\ge1$. Since $j\in Z^i$, some $s\in C_i$ has
+$s\to j$, so $j\in N_\beta(C_i)$ and $(X\cup\{j\})\cap N_\beta(C_i)=(X\cap
+N_\beta(C_i))\cup\{j\}$; applying Corollary~\ref{cor:incr}(d) to $X$ and to
+$X\cup\{j\}$ gives $\partial_j(C_i,X)=\partial_j(C_i,X\cap N_\beta(C_i))\ge1$.
+As $C_i\subseteq C^{(p)}$, Corollary~\ref{cor:incr}(b) gives
+$\partial_j(C^{(p)},X)\ge1$, hence $\partial_j(C^{(p)},(R_p)_{\succ j})=1$
+by Corollary~\ref{cor:incr}(c); that is, $j\in g(C^{(p)},R_p)$. Thus
+$W_p\subseteq g(C^{(p)},R_p)$, and
+Lemma~\ref{lem:greedy} gives an injective map $m_p\colon W_p\to C^{(p)}$
+with $m_p(j)\to j$ for all $j$. For $j\in W_p$ the element $s=m_p(j)$ lies
+in $C_{i'}$ for some $i'$ with $p\to i'$; then $(p,j)$ and $(i',s)$
+conflict, so $(p,s)\in H$ and $(p,j)\in R(p,s)$. The edges
+$(p,j)\mapsto(p,m_p(j))$, over all $p$ and $j\in W_p$, form a matching of
+$\Gamma_R$ that covers $W$: within one $p$ the points $(p,m_p(j))$ are
+distinct because $m_p$ is injective, and for different $p$ they are
+distinct because their first coordinates differ.
+
+By Steps 1 and 2,
+$\nu(\Gamma_L)\le\nu(\Gamma_R)+\abs Z-\nu(\Gamma_N)$; and
+$\nu(\Gamma_R)\le\abs H$ because $H$ is one part of $\Gamma_R$.
+\end{proof}
+
+The next lemma is the only place where we use the hypotheses of the
+counting lemma.
+
+\begin{lemma}[Local lemma]\label{lem:local}
+If every member of $R$ is in a conflict and $\Gamma_C$ has a matching
+saturating $H$, then $\Gamma_L$ has a matching saturating $R$.
+\end{lemma}
+
+\begin{proof}
+$\Gamma_L$ is the disjoint union, over $j\in X_4$, of its subgraphs
+$\Gamma_L^j$ on the members $(p,j)\in R$ and the points $(i,j)\in Z$. Fix
+$j$ and write $N_L$ for neighbourhoods in $\Gamma_L^j$; by Hall's theorem it
+suffices to show that every set $U$ of members
+$(p,j)\in R$ has at least $\abs U$ neighbours. Suppose not, and choose such
+a $U$ with $\abs{N_L(U)}<\abs U$ and $\abs U$ minimal; put $T=N_L(U)$. For
+every $w\in U$ the set $U\setminus\{w\}$ satisfies Hall's condition, by
+minimality, so it has a matching into $T$ saturating it; hence
+$\abs T=\abs U-1$, and this matching is a bijection
+$\mu_w\colon U\setminus\{w\}\to T$ with $\mu_w(r)\in N_L(r)$ for every $r$.
+
+Let $S_j=\{s:s\to j\}$. For $s\in S_j$ let $U_s$ be the set of
+$(p,j)\in U$ for which some $(i,s)\in C$ has $p\to i$, and let $T_s$ be the
+set of $(i,j)\in T$ with $(i,s)\in C$. If $(p,j)\in U_s$ and $(i,s)\in C$
+with $p\to i$, then $(p,j)$ and $(i,s)$ conflict because $s\to j$; so
+$(p,s)\in H$ and $(i,j)\in Z$, and $(i,j)$ is covered by $(p,j)$, so
+$(i,j)\in T_s$. A matching of $\Gamma_C$ saturating $H$ sends the distinct
+$H$-points $(p,s)$, $(p,j)\in U_s$, to distinct members $(i,s)\in C$ with
+$p\to i$, hence to distinct points $(i,j)\in T_s$. Therefore
+$\abs{U_s}\le\abs{T_s}$ for every $s\in S_j$, and summing,
+\begin{equation}\label{eq:sumcount}
+  \sum_{r\in U}m_r\le\sum_{z\in T}n_z,\qquad
+  m_r=\#\{s\in S_j:r\in U_s\},\quad n_z=\#\{s\in S_j:z\in T_s\}.
+\end{equation}
+If $r=(p,j)\in U$ is adjacent to $z=(i,j)$ in $\Gamma_L$, then $p\to i$, so every
+$s\in S_j$ with $z\in T_s$ has $(i,s)\in C$ and hence $r\in U_s$; thus
+$m_r\ge n_z$. Fix $w\in U$. Using $\mu_w$,
+\[
+  \sum_{r\in U}m_r\ \ge\ m_w+\sum_{r\in U\setminus\{w\}}n_{\mu_w(r)}
+  \ =\ m_w+\sum_{z\in T}n_z .
+\]
+Finally $m_w\ge1$: by hypothesis $w=(p,j)$ conflicts with some $(i,s)\in C$,
+and then $s\in S_j$ and $w\in U_s$. This contradicts~\eqref{eq:sumcount}.
+\end{proof}
+
+\begin{lemma}[Counting lemma]\label{lem:count}
+Suppose that every member is in a conflict and that both $\Gamma_R$ and
+$\Gamma_C$ have matchings saturating $H$. Then
+$\abs R+\abs C\le\abs Z+\abs H$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:local}, $\nu(\Gamma_L)=\abs R$. The instance
+$\sigma(\mathcal I)$ also has every member in a conflict, and
+$\Gamma_C(\sigma(\mathcal I))\cong\Gamma_R(\mathcal I)$ has a matching
+saturating its $H$-points; so Lemma~\ref{lem:local} applied to
+$\sigma(\mathcal I)$ gives
+$\nu(\Gamma_N(\mathcal I))=\nu(\Gamma_L(\sigma(\mathcal I)))=\abs C$.
+Lemma~\ref{lem:rank} concludes.
+\end{proof}
+
+\subsection{The deletion lemma}
+
+\begin{theorem}[Deletion lemma]\label{thm:deletion}
+There are $R'\subseteq R$ and $C'\subseteq C$ with no conflict between a
+member of $R'$ and a member of $C'$, containing every member that is in no
+conflict, such that
+\[
+  \abs{R\setminus R'}+\abs{C\setminus C'}\le
+  \min\{\nu(\Gamma_R),\nu(\Gamma_C)\}+q,
+\]
+where $q$ is the number of points of $Z$ covered by no member of $R'$ or
+$C'$. In particular $\abs{R\setminus R'}+\abs{C\setminus C'}\le\abs H+q$.
+\end{theorem}
+
+The proof treats members without conflicts (Case~1), a Hall deficiency on
+one side (Case~2, where $\sigma$ reduces the side of $C$ to the side of
+$R$), and the saturated case (Case~3).
+
+\begin{proof}
+Call a pair $(R',C')$ with the stated properties a \emph{solution}. We use
+induction on $\abs R+\abs C$; the induction hypothesis covers every
+instance, of any shape, with fewer members. If there is no conflict, then
+$\nu(\Gamma_R)=\nu(\Gamma_C)=0$ and $(R,C)$ is a solution. Let
+$\mathfrak m=\min\{\nu(\Gamma_R),\nu(\Gamma_C)\}$.
+
+\emph{Case 1: some member $e$ is in no conflict.} Removing $e$ from its
+family changes neither the conflicts nor $Z$ nor $H$. The member $e$ is
+isolated in its corresponding graph, while the other graph is unchanged,
+so $\mathfrak m$ is unchanged. Apply the
+induction hypothesis to the families without $e$ and add $e$ back to the
+kept family it came from. By Remark~\ref{rem:facts}(b), $e$ covers no point
+of $Z$, so this changes neither the deletion count nor $q$, and creates no
+conflict.
+
+\emph{Case 2: every member is in a conflict and $\mathfrak m<\abs H$.}
+Assume first that $\nu(\Gamma_R)=\mathfrak m$. By Lemma~\ref{lem:hall}
+there is a nonempty $H'\subseteq H$ whose set of neighbours
+$W=\bigcup_{h\in H'}R(h)$ in $\Gamma_R$ satisfies
+$\abs W\le\abs{H'}-\abs H+\mathfrak m$; and $W\neq\varnothing$ by
+Remark~\ref{rem:blocks}. Apply the induction hypothesis to the families
+$R\setminus W$ and $C$; write $Z^\circ,H^\circ$ for their sets of $Z$- and
+$H$-points, and $q^\circ$ for their count of uncovered points. It gives
+$R'\subseteq R\setminus W$ and $C'\subseteq C$ with no conflict between
+them and
+\[
+  \abs{(R\setminus W)\setminus R'}+\abs{C\setminus C'}
+  \le\min\{\nu(\Gamma_R^\circ),\nu(\Gamma_C^\circ)\}+q^\circ
+  \le\abs{H^\circ}+q^\circ .
+\]
+Every conflict among $R\setminus W$ and $C$ is a conflict among $R$ and
+$C$, so $Z^\circ\subseteq Z$ and $H^\circ\subseteq H$. No $h\in H'$ lies in
+$H^\circ$, because by Remark~\ref{rem:blocks} every conflict with
+$H$-point $h$ involves a member of $R(h)\subseteq W$; hence
+$\abs{H^\circ}\le\abs H-\abs{H'}$. A point of $Z^\circ$ covered by no
+member of $R'$ or $C'$ is a point of $Z$ covered by no member of $R'$ or
+$C'$, so $q^\circ\le q$. Since every member is in a conflict, the
+requirement on members without conflicts is empty, and $(R',C')$ is a
+solution:
+\[
+  \abs{R\setminus R'}+\abs{C\setminus C'}
+  \le\abs W+\abs H-\abs{H'}+q\le\mathfrak m+q .
+\]
+If instead $\nu(\Gamma_C)=\mathfrak m<\nu(\Gamma_R)$, apply the previous
+paragraph to $\sigma(\mathcal I)$, which has the same number of members,
+satisfies the hypotheses of Case~2 with $\nu(\Gamma_R(\sigma(\mathcal
+I)))=\nu(\Gamma_C(\mathcal I))=\mathfrak m$, and only invokes the
+induction hypothesis on instances with fewer members. By the identification
+of $\sigma(\mathcal I)$ with $\mathcal I$ described in the symmetry
+paragraph, a solution $(R'',C'')$ for $\sigma(\mathcal I)$ gives the
+solution $\bigl((C'')^\T,(R'')^\T\bigr)$ for $\mathcal I$, with the same
+deletion count and the same $q$.
+
+\emph{Case 3: every member is in a conflict and $\mathfrak m=\abs H$}, so
+both $\Gamma_R$ and $\Gamma_C$ have matchings saturating $H$. Take
+$R'=C'=\varnothing$. There is no conflict between empty families, there is
+no member without a conflict, and every point of $Z$ is uncovered, so
+$q=\abs Z$. By Lemma~\ref{lem:count},
+$\abs R+\abs C\le\abs H+\abs Z=\mathfrak m+q$.
+\end{proof}
+
+\begin{remark}\label{rem:oai}
+Let $\Gamma$ be the bipartite graph used in~\cite{OAI}: its left part is
+$R$ together with a copy $Z_L$ of $Z$, its right part is $C$ together with
+a copy $Z_R$ of $Z$, and its edges join conflicting members, $r$ to $z_R$
+when $r\in R$ covers $z$, and $z_L$ to $c$ when $c\in C$ covers $z$.
+Theorem~\ref{thm:deletion} gives
+$\nu(\Gamma)\le\abs Z+\min\{\nu(\Gamma_R),\nu(\Gamma_C)\}$, which sharpens
+the bound $\nu(\Gamma)\le\abs Z+\abs H$ of~\cite{OAI}. Indeed, for a
+solution $(R',C')$ let $K$ consist of the deleted members, the copies $z_R$
+of the points covered by members of $R'$, and the copies $z_L$ of the
+points covered by members of $C'$. By Remark~\ref{rem:facts}(a) no point is
+covered by members of both $R'$ and $C'$, so
+$\abs K=\abs{R\setminus R'}+\abs{C\setminus C'}+\abs Z-q$. Every edge of
+$\Gamma$ meets $K$: a conflict has a deleted endpoint, and an edge from a
+kept member to a copy of $z$ ends in $K$ by construction. A matching meets
+each vertex of $K$ at most once, so $\nu(\Gamma)\le\abs K$.
+\end{remark}
+
+\section{Two consequences}\label{sec:consequences}
+
+\begin{corollary}[weighted form]\label{cor:weighted}
+Let $D$ be a nonempty oriented graph and $w\colon V(D)\to[0,\infty)$. Then some
+vertex $v$ satisfies $w(N_1^+(v))\le w(N_2^+(v))$, where
+$w(S)=\sum_{x\in S}w(x)$.
+\end{corollary}
+
+For the related arc-weighted formulation and its equivalence with the
+unweighted conjecture, see Seacrest~\cite{Seacrest2015}.
+
+\begin{proof}
+First let $w$ take positive integer values. Let $D_w$ have vertex set
+$\{(v,k):v\in V(D),\ 1\le k\le w(v)\}$ and arcs $(v,k)\to(u,l)$ whenever
+$v\to u$. It is a nonempty oriented graph. For $x=(v,k)$ we have
+$N_1^+(x)=\{(u,l):u\in N_1^+(v)\}$. A vertex $(u,l)$ is reached from $x$ by
+a two-step walk exactly when $u\in F^2(\{v\})$; it is not $x$ and not an
+out-neighbour of $x$ exactly when $u\notin N_1^+(v)$, because $u=v$ would
+need a closed walk of length two in $D$. So
+$N_2^+(x)=\{(u,l):u\in N_2^+(v)\}$, and a good vertex of $D_w$, given by
+Theorem~\ref{thm:main}, yields the required $v$. Scaling handles positive
+rational weights. For each $v$ the set of $w\in[0,\infty)^{V(D)}$ with
+$w(N_1^+(v))\le w(N_2^+(v))$ is closed, so their union is closed; it
+contains the dense set of positive rational weight vectors, hence all of
+$[0,\infty)^{V(D)}$.
+\end{proof}
+
+\begin{corollary}[directed triangles]\label{cor:triangle}
+If an oriented graph $D$ on $n\ge1$ vertices has no directed triangle, then
+some vertex $v$ satisfies $2\abs{N_1^+(v)}+\abs{N_1^-(v)}\le n-1$, where
+$N_1^-(v)=\{u:u\to v\}$. Consequently every oriented graph on $n\ge1$
+vertices in which every vertex has at least $n/3$ out-neighbours and at
+least $n/3$ in-neighbours contains a directed triangle.
+\end{corollary}
+
+\begin{proof}
+Let $v$ be good. If some $w\in N_2^+(v)$ were an in-neighbour of $v$, a
+walk $v\to u\to w$ would close to the directed triangle $v\to u\to w\to v$.
+Hence the sets $\{v\}$, $N_1^+(v)$, $N_1^-(v)$ and $N_2^+(v)$ are pairwise
+disjoint ($N_1^+(v)\cap N_1^-(v)=\varnothing$ because $D$ is oriented), and
+$\abs{N_1^+(v)}\le\abs{N_2^+(v)}\le n-1-\abs{N_1^+(v)}-\abs{N_1^-(v)}$,
+which is the first assertion. Under the degree condition every vertex has
+$2\abs{N_1^+(v)}+\abs{N_1^-(v)}\ge n>n-1$, so the graph cannot be free of
+directed triangles.
+\end{proof}
+
+\section{Formal verification}\label{sec:lean}
+
+All numbered lemmas, theorems and corollaries of Sections~1--5 have been
+checked in Lean~4 (version 4.36.0-rc2) with Mathlib (tag v4.36.0-rc2). The
+source files accompany the paper as the library \texttt{Seymour}. The
+remarks are not formalized, although the facts in Remarks~\ref{rem:facts}
+and~\ref{rem:blocks} are proved wherever the argument uses them.
+
+The formal statement of Theorem~\ref{thm:main} uses no definitions from the
+development: for every nonempty finite type $X$ and every relation $E$ on
+$X$ with $E\,x\,y\Rightarrow\neg E\,y\,x$, some $v$ satisfies
+\[
+  \abs{\{u:E\,v\,u\}}\le
+  \abs{\{u:\neg E\,v\,u\text{ and }E\,v\,w,\ E\,w\,u
+  \text{ for some }w\}}.
+\]
+The command \texttt{\#print axioms} reports only the standard axioms
+\texttt{propext}, \texttt{Classical.choice} and \texttt{Quot.sound}, and the
+library builds without \texttt{sorry} or warnings.
+
+Section~\ref{sec:deletion} is formalized for general instances. The
+implementation conventions---a common universe for the four types, direct
+definitions of matching numbers, an enumerated linear order and truncated
+subtraction for increments---do not change the mathematical statements.
+
+A traversal of the proof terms finds no constants from matrices, linear
+maps, submodules, ranks, polynomial rings or fraction fields.
+
+\section*{Acknowledgements}
+
+Parts of the proofs in this paper, and the Lean formalization described in
+Section~\ref{sec:lean}, were developed with the assistance of the AI model
+Claude Opus~5.5 (Anthropic). The author takes full responsibility for the
+content of the paper.
+
+\begin{thebibliography}{99}
+\raggedright
+\bibitem{BBKS}
+J.~Brantner, G.~Brockman, B.~Kay and E.~Snively, Contributions to Seymour's
+second neighborhood conjecture, \emph{Involve} 2 (2009), no.~4, 387--395,
+\url{https://doi.org/10.2140/involve.2009.2.387}.
+
+\bibitem{CSY}
+G.~Chen, J.~Shen and R.~Yuster, Second neighborhood via first neighborhood
+in digraphs, \emph{Ann. Comb.} 7 (2003), no.~1, 15--20,
+\url{https://doi.org/10.1007/s000260300001}.
+
+\bibitem{DL}
+N.~Dean and B.~J.~Latka, Squaring the tournament---an open problem,
+\emph{Congressus Numerantium} 109 (1995), 73--80.
+
+\bibitem{Edmonds}
+J.~Edmonds, Systems of distinct representatives and linear algebra,
+\emph{J. Res. Nat. Bur. Standards Sect. B} 71B (1967), 241--245,
+\url{https://doi.org/10.6028/jres.071B.033}.
+
+\bibitem{EGGK}
+A.~Espuny D\'iaz, A.~Gir\~ao, B.~Granet and G.~Kronenberg, Seymour's second
+neighbourhood conjecture: random graphs and reductions, \emph{Random
+Structures Algorithms} 66 (2025), no.~1, e21251,
+\url{https://doi.org/10.1002/rsa.21251}.
+
+\bibitem{FY}
+D.~Fidler and R.~Yuster, Remarks on the second neighborhood problem,
+\emph{J. Graph Theory} 55 (2007), no.~3, 208--220,
+\url{https://doi.org/10.1002/jgt.20229}.
+
+\bibitem{Fisher}
+D.~C.~Fisher, Squaring a tournament: a proof of Dean's conjecture,
+\emph{J. Graph Theory} 23 (1996), 43--48,
+\url{https://doi.org/10.1002/(SICI)1097-0118(199609)23:1<43::AID-JGT4>3.0.CO;2-K}.
+
+\bibitem{Ghazal}
+S.~Ghazal, Seymour's second neighborhood conjecture for tournaments
+missing a generalized star, \emph{J. Graph Theory} 71 (2012), no.~1, 89--94,
+\url{https://doi.org/10.1002/jgt.20634}.
+
+\bibitem{Hall}
+P.~Hall, On representatives of subsets,
+\emph{J. London Math. Soc.} 10 (1935), 26--30,
+\url{https://doi.org/10.1112/jlms/s1-10.37.26}.
+
+\bibitem{HT}
+F.~Havet and S.~Thomass\'e, Median orders of tournaments: a tool for the
+second neighborhood problem and Sumner's conjecture,
+\emph{J. Graph Theory} 35 (2000), 244--256,
+\url{https://doi.org/10.1002/1097-0118(200012)35:4<244::AID-JGT2>3.0.CO;2-H}.
+
+\bibitem{HP}
+H.~Huang and F.~Peng, An improved bound on Seymour's second neighborhood
+conjecture, arXiv:2412.20234, 2024,
+\url{https://arxiv.org/abs/2412.20234}.
+
+\bibitem{KL}
+Y.~Kaneko and S.~C.~Locke, The minimum degree approach for Paul Seymour's
+distance 2 conjecture, \emph{Congressus Numerantium} 148 (2001), 201--206.
+
+\bibitem{OAI}
+OpenAI, A proof of Seymour's second-neighborhood conjecture, preprint in the
+OpenAI Math Release, September 23, 2026,
+\href{https://github.com/openai/math/blob/main/preprints/A-proof-of-Seymours-second-neighborhood-conjecture-September-23-2026/paper.pdf}{\nolinkurl{github.com/openai/math}}.
+
+\bibitem{Seacrest2015}
+T.~Seacrest, The arc-weighted version of the second neighborhood conjecture,
+\emph{J. Graph Theory} 78 (2015), no.~3, 219--228,
+\url{https://doi.org/10.1002/jgt.21800}.
+
+\bibitem{Seacrest2019}
+T.~Seacrest, Seymour's second neighborhood conjecture for subsets of
+vertices, arXiv:1808.06293v3, revised April 12, 2019,
+\url{https://arxiv.org/abs/1808.06293v3}.
+\end{thebibliography}
+
+\end{document}

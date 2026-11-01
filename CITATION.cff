@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "A short combinatorial proof of Seymour's second-neighbourhood conjecture"
+authors:
+  - family-names: Xie
+    given-names: Qihuan
+    affiliation: University of British Columbia
+    email: qhxie@student.ubc.ca
+version: 1.0.0
+date-released: 2026-10-31
+license:
+  - Apache-2.0
+  - CC-BY-4.0
+repository-code: "https://github.com/QihuanXie/seymour-second-neighbourhood"
+abstract: >-
+  A short, self-contained and purely combinatorial proof of Seymour's
+  second-neighbourhood conjecture, together with a Lean 4 formalization of
+  all numbered results of the paper. The main ingredient is a deletion lemma
+  for two families of ordered pairs, proved by an induction driven by Hall's
+  defect theorem, with greedy matchings and double counting in the saturated
+  case.

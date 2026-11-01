@@ -1,0 +1,18 @@
+name = "seymour"
+version = "1.0.0"
+defaultTargets = ["Seymour"]
+
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.style.header = false # no Mathlib copyright header in this project
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.36.0-rc2"
+
+[[lean_lib]]
+name = "Seymour"
