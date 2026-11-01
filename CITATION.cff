@@ -7,6 +7,14 @@ authors:
     affiliation: University of British Columbia
     email: qhxie@student.ubc.ca
 version: 1.0.0
+doi: 10.5281/zenodo.23852411
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23852411
+    description: Concept DOI (all versions)
+  - type: doi
+    value: 10.5281/zenodo.23852412
+    description: Version 1.0.0
 date-released: 2026-10-31
 license:
   - Apache-2.0

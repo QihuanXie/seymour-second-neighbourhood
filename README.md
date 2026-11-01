@@ -1,6 +1,7 @@
 # A short combinatorial proof of Seymour's second-neighbourhood conjecture
 
 [![Lean build](https://github.com/QihuanXie/seymour-second-neighbourhood/actions/workflows/ci.yml/badge.svg)](https://github.com/QihuanXie/seymour-second-neighbourhood/actions/workflows/ci.yml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23852411.svg)](https://doi.org/10.5281/zenodo.23852411)
 
 This repository contains the paper and its Lean 4 formalization.
 
@@ -89,7 +90,22 @@ verification.log              record of a clean build
 
 ## Citation
 
-Please cite the paper; see [`CITATION.cff`](CITATION.cff).
+Please cite the paper; see [`CITATION.cff`](CITATION.cff). The repository is archived on Zenodo:
+
+- all versions: [10.5281/zenodo.23852411](https://doi.org/10.5281/zenodo.23852411)
+- version 1.0.0: [10.5281/zenodo.23852412](https://doi.org/10.5281/zenodo.23852412)
+
+```bibtex
+@software{xie_seymour_2026,
+  author    = {Xie, Qihuan},
+  title     = {A short combinatorial proof of {Seymour}'s second-neighbourhood conjecture},
+  year      = {2026},
+  publisher = {Zenodo},
+  version   = {1.0.0},
+  doi       = {10.5281/zenodo.23852411},
+  url       = {https://doi.org/10.5281/zenodo.23852411}
+}
+```
 
 ## Licence
 
