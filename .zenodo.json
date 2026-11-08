@@ -1,7 +1,7 @@
 {
-  "title": "A short combinatorial proof of Seymour's second-neighbourhood conjecture",
+  "title": "A short combinatorial proof of Seymour's second neighbourhood conjecture",
   "upload_type": "software",
-  "description": "<p>A short, self-contained and purely combinatorial proof of Seymour's second-neighbourhood conjecture (paper, LaTeX source and PDF), together with a Lean 4 / Mathlib formalization of all numbered results of the paper. The Lean code is licensed under Apache-2.0; the paper is licensed under CC BY 4.0.</p>",
+  "description": "<p>A short, self-contained and purely combinatorial proof of Seymour's second neighbourhood conjecture (paper, LaTeX source and PDF), together with a Lean 4 / Mathlib formalization of all numbered results of the paper. The Lean code is licensed under Apache-2.0; the paper is licensed under CC BY 4.0.</p>",
   "creators": [
     {
       "name": "Xie, Qihuan",
@@ -9,7 +9,7 @@
     }
   ],
   "license": "Apache-2.0",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "related_identifiers": [
     {
       "identifier": "https://github.com/openai/math",
