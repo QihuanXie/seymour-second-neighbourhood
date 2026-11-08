@@ -97,6 +97,7 @@ Please cite the paper; see [`CITATION.cff`](CITATION.cff). The repository is arc
 
 - all versions: [10.5281/zenodo.23852411](https://doi.org/10.5281/zenodo.23852411)
 - version 1.0.0: [10.5281/zenodo.23852412](https://doi.org/10.5281/zenodo.23852412)
+- version 1.1.0: [10.5281/zenodo.24045949](https://doi.org/10.5281/zenodo.24045949)
 
 ```bibtex
 @software{xie_seymour_2026,
